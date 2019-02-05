@@ -11,7 +11,7 @@ Load Data
 source("https://raw.githubusercontent.com/jreznyc/DATA606/master/Labs/Lab1/cdc.R")
 ```
 
-Exercise 1.  How many cases are there in this data set?  How many variables?  For each 
+**Exercise 1.**  How many cases are there in this data set?  How many variables?  For each 
     variable, identify its data type (e.g. categorical, discrete).  
   
 There are 20,000 cases, and 9 variables. The data types are:  
@@ -25,8 +25,9 @@ wtdesire: numerical discrete
 age: numerical discrete  
 gender: categorical  
   
-    
-Exercise 2.  Create a numerical summary for `height` and `age`, and compute the 
+
+      
+**Exercise 2.**  Create a numerical summary for `height` and `age`, and compute the 
     interquartile range for each. Compute the relative frequency distribution for
     `gender` and `exerany`. How many males are in the sample? What proportion of the 
     sample reports being in excellent health?  
@@ -49,10 +50,10 @@ summary(cdc$gender)['m']
 table(cdc$genhlth)['excellent']/20000
 ```
   
-Exercise 3.  What does the mosaic plot reveal about smoking habits and gender?    
+**Exercise 3.**  What does the mosaic plot reveal about smoking habits and gender?    
 It reveals that men are more likely to smoke than women. 
   
-Exercise 4.  Create a new object called `under23_and_smoke` that contains all observations 
+**Exercise 4.**  Create a new object called `under23_and_smoke` that contains all observations 
     of respondents under the age of 23 that have smoked 100 cigarettes in their 
     lifetime.  
     
@@ -60,7 +61,7 @@ Exercise 4.  Create a new object called `under23_and_smoke` that contains all ob
 under23_and_smoke <- subset(cdc, cdc$age<23 & cdc$smoke100==1)
 ```
   
-Exercise 5.  What does this box plot show? Pick another categorical variable from the data set and see how it relates to BMI. List the variable you chose, why you might think it would have a relationship to BMI, and indicate what the figure seems to suggest.  
+**Exercise 5.**  What does this box plot show? Pick another categorical variable from the data set and see how it relates to BMI. List the variable you chose, why you might think it would have a relationship to BMI, and indicate what the figure seems to suggest.  
 The box plot shows that as general health goes from excellent to poor, bmi values become more spread out while at the same time having higher density of larger values for bmi.  
   
 For the second variable to compare with BMI, I'd choose age as I believe it should have a relationship to BMI because humans undergo significant physical and metabolical changes as they age. Below is a box plot of BMI and age group which shows that BMI is generally higher for age groups (30-45], and (45-65]
@@ -73,22 +74,22 @@ boxplot(bmi ~ age, main="BMI & Age")
 
   
 # On Your Own Questions
-(1)  Make a scatterplot of weight versus desired weight. Describe the relationship between these two variables.  
+**(1) ** Make a scatterplot of weight versus desired weight. Describe the relationship between these two variables.  
 Below is a scatterplot of weight versus desired weight. These two variables have a positive linear association.
 ```{r weight vs desired}
 plot(cdc$weight, cdc$wtdesire)
 ```
   
-(2)  Let’s consider a new variable: the difference between desired weight (wtdesire) and current weight (weight). Create this new variable by subtracting the two columns in the data frame and assigning them to a new object called wdiff.  
+**(2) ** Let’s consider a new variable: the difference between desired weight (wtdesire) and current weight (weight). Create this new variable by subtracting the two columns in the data frame and assigning them to a new object called wdiff.  
 ```{r wdiff}
 wdiff <- cdc$wtdesire - cdc$weight
 ```
   
-(3)  What type of data is wdiff? If an observation wdiff is 0, what does this mean about the person’s weight and desired weight. What if wdiff is positive or negative?  
+**(3) ** What type of data is wdiff? If an observation wdiff is 0, what does this mean about the person’s weight and desired weight. What if wdiff is positive or negative?  
   
 wdiff is numerical data. If the observation is 0, it means that the person is at their desired weight. If wdiff is negative it means the person's desired weight is less than their current weight. If wdiff is positive it means the person's desired weight is greater than their current weight. 
   
-(4)  Describe the distribution of wdiff in terms of its center, shape, and spread, including any plots you use. What does this tell us about how people feel about their current weight?  
+**(4)**  Describe the distribution of wdiff in terms of its center, shape, and spread, including any plots you use. What does this tell us about how people feel about their current weight?  
   
 The distribution of wdiff is centered at -10, unimodal, and with a high spread and a significant number of outliers. This indicates that individuals have wildly varying differences between their current and desired weight.  
 
@@ -98,7 +99,7 @@ hist(wdiff, breaks = 50, ylim=c(0,5000))
 boxplot(wdiff, ylim=c(-100,100), main="Boxplot of wdiff")
 ```
   
-(5)  Using numerical summaries and a side-by-side box plot, determine if men tend to view their weight differently than women.  
+**(5)**  Using numerical summaries and a side-by-side box plot, determine if men tend to view their weight differently than women.  
   
 Men are more likely to have a smaller difference between desired weight and actual weight. Women have a greater difference between their desired and actual weight. There is a large spread in values for both genders. 
 ```{r wdiff by gender}
