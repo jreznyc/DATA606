@@ -13,10 +13,19 @@ source("https://raw.githubusercontent.com/jreznyc/DATA606/master/Labs/Lab1/cdc.R
 
 Exercise 1.  How many cases are there in this data set?  How many variables?  For each 
     variable, identify its data type (e.g. categorical, discrete).  
-```{r structure, eval=TRUE}
-str(cdc)
-```
   
+There are 20,000 cases, and 9 variables. The data types are:  
+genhlth: categorical ordinal  
+exerany: categorical  
+hlthplan: categorical  
+smoke100: categorical  
+height: numerical discrete  
+weight: numerical discrete  
+wtdesire: numerical discrete  
+age: numerical discrete  
+gender: categorical  
+  
+    
 Exercise 2.  Create a numerical summary for `height` and `age`, and compute the 
     interquartile range for each. Compute the relative frequency distribution for
     `gender` and `exerany`. How many males are in the sample? What proportion of the 
