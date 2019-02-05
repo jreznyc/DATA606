@@ -8,7 +8,7 @@ output: pdf_document
 # Exercises
 Load Data
 ```{r load-data, eval=TRUE}
-source("Lab1/more/cdc.R")
+source("https://raw.githubusercontent.com/jreznyc/DATA606/master/Labs/Lab1/cdc.R")
 ```
 
 Exercise 1.  How many cases are there in this data set?  How many variables?  For each 
