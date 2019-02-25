@@ -1,0 +1,107 @@
+---
+title: "Data 606 Lab 3"
+author: "John Perez"
+date: "2/25/2019"
+output:
+  html_document:
+    theme: cerulean
+    highlight: pygments
+    css: ./lab.css
+---
+
+
+```{r load-data, eval=TRUE, include=FALSE}
+load("more/bdims.RData")
+mdims <- subset(bdims, sex == 1)
+fdims <- subset(bdims, sex == 0)
+fhgtmean <- mean(fdims$hgt)
+fhgtsd   <- sd(fdims$hgt)
+```
+
+1.  Make a histogram of men's heights and a histogram of women's heights.  How 
+    would you compare the various aspects of the two distributions?  
+
+**Both distributions look fairly normal with slight skew.**
+```{r}
+par(mfrow=c(1,2))
+hist(mdims$hgt, main="Men's Height")
+hist(fdims$hgt,main="Women's Height")
+```
+
+
+2.  Based on the this plot, does it appear that the data follow a nearly normal 
+    distribution?  
+
+**Yes, the data appears to follow a nearly normal distribution** 
+
+3.  Make a normal probability plot of `sim_norm`.  Do all of the points fall on 
+    the line?  How does this plot compare to the probability plot for the real 
+    data?
+
+**This plot looks similar to the plot for the real data, having points that closely follow the line, but with points deviating from the line towards the tails.**  
+    
+```{r}
+set.seed(2112)
+sim_norm <- rnorm(n = length(fdims$hgt), mean = fhgtmean, sd = fhgtsd)
+qqnorm(sim_norm)
+qqline(sim_norm)
+```
+
+4.  Does the normal probability plot for `fdims$hgt` look similar to the plots 
+    created for the simulated data?  That is, do plots provide evidence that the
+    female heights are nearly normal?  
+
+**Yes, the plots look similar to the plots created by the simulated data**
+
+5.  Using the same technique, determine whether or not female weights appear to 
+    come from a normal distribution.
+
+**It appears weight is skewed right, diverging from the normal distribution**
+
+```{r}
+set.seed(22)
+qqnormsim(fdims$wgt)
+```
+
+6.  Write out two probability questions that you would like to answer; one 
+    regarding female heights and one regarding female weights.  Calculate the 
+    those probabilities using both the theoretical normal distribution as well 
+    as the empirical distribution (four probabilities in all).  Which variable,
+    height or weight, had a closer agreement between the two methods?  
+    
+**What is the probability that a random female is shorter than 150cm?**  
+**What is the probability that a random female is heavier than 68kg?**
+```{r, eval=TRUE}
+pnorm(150, fhgtmean, fhgtsd)
+fwgtmean <- mean(fdims$wgt)
+fwgtsd   <- sd(fdims$wgt)
+1 - pnorm(68, fwgtmean, fwgtsd)
+```
+* * *
+
+## On Your Own
+
+-   
+**a.** This corresponds to plot B  
+**b.** This corresponds to plot C  
+**c.** This corresponds to plot D  
+**d.** This corresponds to plot A  
+
+-   Note that normal probability plots C and D have a slight stepwise pattern.  
+    Why do you think this is the case?
+    **This could be caused by values being rounded**
+
+-   Make a normal probability plot for female 
+    knee diameter (`kne.di`).  Based on this normal probability plot, is this 
+    variable left skewed, symmetric, or right skewed?  Use a histogram to confirm 
+    your findings.
+    **This variable is right skewed**
+```{r}
+#fkn <- fdims$kne.di
+qqnorm(fdims$kne.di)
+qqline(fdims$kne.di)
+hist(fdims$kne.di)
+```
+    
+
+
