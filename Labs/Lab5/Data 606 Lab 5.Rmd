@@ -1,0 +1,131 @@
+---
+title: 'Data 606 Lab 5'
+author: "John Perez"
+output:
+  html_document:
+    css: ./lab.css
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+---
+
+## North Carolina births
+
+## Exercises
+
+```{r load-data, eval=TRUE}
+load("more/nc.RData")
+```
+
+
+
+1.  What are the cases in this data set? How many cases are there in our sample?
+
+**The cases are births in the state of North Carolina**  
+
+
+
+2.  Make a side-by-side boxplot of `habit` and `weight`. What does the plot 
+highlight about the relationship between these two variables?
+
+**The plots reveal that the baby weights of non-smoking mothers are higher**  
+
+```{r}
+library(ggplot2)
+qplot(habit, weight, data=subset(nc,!is.na(habit)), 
+      geom="boxplot", main="Smoking & Non-Smoking new birth weights")
+
+```
+
+
+
+## Inference
+
+3.  Check if the conditions necessary for inference are satisfied. Note that 
+you will need to obtain sample sizes to check the conditions. You can compute 
+the group size using the same `by` command above but replacing `mean` with 
+`length`.
+
+**The conditions are satisfied, as the sample sizes are larger than 30, presumably represent less than 10% of the population, and  are independant.** 
+
+```{r}
+by(nc$weight, nc$habit, length)
+```
+
+
+4.  Write the hypotheses for testing if the average weights of babies born to 
+smoking and non-smoking mothers are different.
+
+**H0: ($\mu_{nonsmoker} = \mu_{smoker}$)**  
+**HA: ($\mu_{nonsmoker} ≠ \mu_{smoker}$)**
+
+
+5.  Change the `type` argument to `"ci"` to construct and record a confidence 
+interval for the difference between the weights of babies born to smoking and 
+non-smoking mothers.
+
+```{r}
+inference(y = nc$weight, x = nc$habit, est = "mean", type = "ci", null = 0, 
+          alternative = "twosided", method = "theoretical")
+```
+
+
+
+* * *
+
+## On your own
+
+-   Calculate a 95% confidence interval for the average length of pregnancies 
+(`weeks`) and interpret it in context. Note that since you're doing inference 
+on a single population parameter, there is no explanatory variable, so you can 
+omit the `x` variable from the function.
+
+**We are 95% certain that the mean pregnancy length is between 38.15 and 38.5 weeks. The sample is skewed left**
+```{r}
+inference(y = nc$weeks, est = "mean", type = "ci", 
+          alternative = "twosided", method = "theoretical")
+```
+
+-   Calculate a new confidence interval for the same parameter at the 90% 
+confidence level. You can change the confidence level by adding a new argument 
+to the function: `conflevel = 0.90`.
+
+```{r}
+inference(y = nc$weeks, est = "mean", type = "ci", 
+          alternative = "twosided", method = "theoretical",conflevel=.9)
+```
+
+-   Conduct a hypothesis test evaluating whether the average weight gained by 
+younger mothers is different than the average weight gained by mature mothers.
+
+**As shown below, since the p-value is ~.17 is higher than an alpha of .05, we fail to reject the null hypothesis (mu_mature mom - mu_younger mom = 0 ).** 
+```{r}
+inference(y = nc$gained, x = nc$mature, est = "mean", type = "ht", null = 0, 
+          alternative = "twosided", method = "theoretical")
+```
+
+-   Now, a non-inference task: Determine the age cutoff for younger and mature 
+mothers. Use a method of your choice, and explain how your method works.
+
+**Here I use the by() function to provide summary statistics for each group. This indicates that corresponding age ranges for each group**
+
+```{r}
+by(nc$mage,nc$mature, summary)
+```
+
+-   Pick a pair of numerical and categorical variables and come up with a 
+research question evaluating the relationship between these variables. 
+Formulate the question in a way that it can be answered using a hypothesis test
+and/or a confidence interval. Answer your question using the `inference` 
+function, report the statistical results, and also provide an explanation in 
+plain language.
+
+**QUESTION: Do younger mothers have more boys than mature mothers?**
+
+Below we test two categorical variables, gender and mature. In the sample, we observe a difference in the proportions of boys of -.0095.
+This value falls well within the range of possible observed values if the null hypothesis were true (no difference in proportion of boys between age groups) and so we fail to reject the Null Hypothesis.  
+
+```{r}
+inference(y = nc$gender, x = nc$mature, est = "proportion", type = "ht", null = 0, 
+          alternative = "twosided", method = "theoretical", success="male")
+```
