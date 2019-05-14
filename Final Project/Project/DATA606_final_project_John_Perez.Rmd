@@ -1,0 +1,182 @@
+---
+title: "DATA 606 Data Final Project"
+author: "John Perez"
+output:
+  html_document:
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+---
+
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(DT)
+```
+
+
+### Part 1 - Introduction   
+
+For nations around the globe, education spending represents an important and often large segment of domestic spending. Globally, nations spend differing amounts on education with similarly differing results in the impact said spending makes in terms of primary completion rate. In this project we will examine if there is any correlation between government spending on education and primary completion rate in Low Income Countries (LIC), Middle Income Countries (MIC), and High Income Countries (HIC) between the years of 2000-2014.  
+
+### Part 2 - Data  
+
+Below we will load the data has been collected by the World Bank. The dataset is from the World Bank World Development Indicators open data library and is updated yearly. We will be using the following data:  
+
++ SE.XPD.TOTL.GB.ZS - Government expenditure on education, total (% of government expenditure)
+
++ SE.PRM.CMPT.ZS - Primary completion rate, total (% of relevant age group)
+
+After loading, we will subset the data to isolate Low, Middle, and High Income country groups.   
+
+```{r}
+comp <- read.csv("/Users/jp/Dropbox/Data Science MS/Courses/Data 606 - Statistics and Probability for Data Analytics/Project/data/API_SE.PRM.CMPT.ZS_DS2_en_csv_v2_10516401.csv",
+                 header=TRUE, na.strings="",skip=4)
+
+
+spend <- read.csv("/Users/jp/Dropbox/Data Science MS/Courses/Data 606 - Statistics and Probability for Data Analytics/Project/data/API_SE.XPD.TOTL.GB.ZS_DS2_en_csv_v2_10515724.csv",
+               header=TRUE, na.strings="",skip=3)
+
+spend2 <- spend %>% 
+    gather(key="Year", value="Spend",5:62) %>% 
+    subset(!is.na(Spend), select=-c(X2018,X,Indicator.Name)) %>% 
+    group_by(Country.Name) %>% 
+    arrange(Year, .by_group=TRUE) %>% 
+    mutate(spend_diff= Spend-lag(Spend, default=first(Spend)))
+spend2$Year <- as.integer(substr(spend2$Year, 2, 5))
+
+comp2 <- comp %>% 
+    gather(key="Year", value="Completion",5:62) %>% 
+    subset(!is.na(Completion), select=-c(X2018,X,Indicator.Name)) %>% 
+    group_by(Country.Name) %>% 
+    arrange(Year, .by_group=TRUE) %>% 
+    mutate(comp_diff= Completion-lag(Completion, default=first(Completion)))
+comp2$Year <- as.integer(substr(comp2$Year, 2, 5))
+
+df <- merge(spend2, comp2, by=c("Country.Name","Year")) %>% 
+    select(c(Country.Name,Country.Code.x,Year,Spend,Completion,spend_diff,comp_diff))
+colnames(df) <- c("Country.Name","Country.Code","Year","Spend","Completion","spend_diff","comp_diff")
+
+#remove regions and designated groups by world bank, leaving only individual countries
+# remove <- c("ARB","CEB","CSS","EAP","EAR","EAS","ECA","ECS","EUU","FCS","FSM","HIC",
+#             "HPC","IBD","IBT","IDA","IDB","IDX","INX","LAC","LCN","LDC","LIC","LMC",
+#             "LMY","LTE","MEA","MIC","MNA","NAC","OED","OSS","PRE","PSS","PST","SAS",
+#             "SSA","SSF","SST","TEA","TEC","TLA","TMN","TSA","TSS","WLD","ZAF")
+
+df$category <- ifelse(df$spend_diff<0,"Decrease", 
+                      ifelse(df$spend_diff>0,"Increase",NA))
+
+#df <- df[!(df$Country.Code %in% remove),c(8,1,2,3,4,5,6,7)] %>% subset(!is.na(category))
+#df <- df[(df$Country.Code %in% remove),c(8,1,2,3,4,5,6,7)] %>% subset(!is.na(category))
+
+income_df <- subset(df, Country.Code=="LIC" | Country.Code=="HIC" | Country.Code=="MIC" )
+income_df <- income_df[income_df$Year>=2000,] 
+income_df <- income_df[income_df$Year<=2014,]
+
+datatable(income_df)
+
+```
+
+
+#### Cases 
+
+Each case represents the education expenditure and corresponding primary completion rate (as percentage of GDP and relevant age group, respectively) per group per year. 
+
+
+### Part 3 - Exploratory data analysis
+
+Below we will graph spending and completion rates for each of the groups.  
+
+```{r}
+ggplot(income_df, aes(x=Year,y=Completion, colour=Country.Code) ) + geom_line() + 
+    ggtitle("Completion Rate")  +
+    ylab("Primary Completion (% of relevant age group)")
+ggplot(income_df, aes(x=Year,y=Spend, colour=Country.Code)) + geom_line() + 
+    ggtitle("Education Spending") +
+    ylab("Education Spending (% of GDP")
+
+```
+
+With Regards to primary completion rate, we make the following observations from the graphs above:  
+
++ For High Income Countries, primary completion rate has been fairly flat but overall slightly increasing over time.  
++ For Middle Income Countries, primary completion rates have also been increasing
++ For Low Income Countries, primary completion rates increased greatly from 2000-2008, at which point it has been decreasing slightly.  
+
+
+Regarding Education Spending, we make the following observations:  
+
++ High Income Countries spend the least on education as a proportion of GDP with ~12.75% as of 2015. Middle Income Countries spend a greater percentage of GDP, and Low Income Countries, the highest percentage of GDP.  
++ Within each group, education spending percentage shows significant volatility, increasing and decreasing often.  
++ These fluctuations may be caused not only by changes in Education funding allocation, but also national GDP over the years. While this is beyond the scope of this project, the potential root causes could alter the findings of this project at a later date. For the purposes of this project we will make the assumption that the changes in spending are strictly changes in budget allocation only. 
+
+
+
+### Part 4 - Inference
+
+Below we will attempt to model primary completion rate and education spending to test whether education spending is a good predictor of primary completion rate.  
+
+```{r low income analysis}
+
+low_inc <- subset(income_df,Country.Code=="LIC")
+ml <- lm(Completion ~ Spend, low_inc)
+
+plot_model <- function(model,df){
+    plot(df$Completion ~ df$Spend, main=paste(deparse(substitute(df))))
+    abline(model)
+}
+plot_model(ml,low_inc)
+
+plot(abs(ml$residuals) ~ ml$fitted.values,
+     xlab = "Fitted Values", ylab = "Absolute Value of Residuals")
+
+summary(ml)
+cor(low_inc$Completion, low_inc$Spend)
+qqnorm(ml$residuals)
+qqline(ml$residuals)
+```
+
+```{r middle income analysis}
+mid_inc <- subset(income_df,Country.Code=="MIC")
+mm <- lm(Completion ~ Spend, mid_inc)
+plot_model(mm,mid_inc)
+summary(mm)
+plot(abs(mm$residuals) ~ mm$fitted.values,
+     xlab = "Fitted Values", ylab = "Absolute Value of Residuals")
+cor(mid_inc$Completion, mid_inc$Spend)
+qqnorm(mm$residuals)
+qqline(mm$residuals)
+```
+
+```{r high income analysis}
+hi_inc <- subset(income_df,Country.Code=="HIC")
+mh <- lm(Completion ~ Spend, hi_inc)
+plot_model(mh,hi_inc)
+summary(mh)
+plot(abs(mh$residuals) ~ mh$fitted.values,
+     xlab = "Fitted Values", ylab = "Absolute Value of Residuals")
+cor(hi_inc$Completion, hi_inc$Spend)
+qqnorm(mh$residuals)
+qqline(mh$residuals)
+
+```
+
+
+
+### Part 5 - Conclusion
+
+As shown by the models above we conclude the following:  
+
++ While there is some correlation between education spending and primary completion rate, the data does not show that spending is a good predictor of primary completion rate.  
+
++ Linear regression is not suitable for describing the relationship between Spend and Completion Rate. This is evidenced by, inconsistency in residuals, non-normal residuals, and very low Adjusted R squared measures for each model. 
+
++ The observed p-values for each category is in each case, large (>.2). This indicates that the observed values for the dependant variable are likely due to chance and as a result, Spend is not an adequate explanatory varible for Primary Completion Rate. 
+
+### References
+https://data.worldbank.org/indicator/se.xpd.totl.gb.zs
+https://data.worldbank.org/indicator/SE.PRM.CMPT.ZS
+
+
